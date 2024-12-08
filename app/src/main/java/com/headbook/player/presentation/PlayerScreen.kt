@@ -44,12 +44,14 @@ import com.headbook.ui.theme.LightGray
 
 @Composable
 fun PlayerScreenRoot(
+    modifier: Modifier,
     viewModel: PlayerViewModel,
 ) {
     val state = viewModel.playerState.collectAsState()
 
     if (!state.value.showText)
         PlayerScreen(
+            modifier = modifier,
             bookCoverId = R.drawable.book_cover,
             currentPosition = formatTime(state.value.currentPosition),
             sliderValue = if (state.value.sliderValue.isNaN()) 0f else state.value.sliderValue,
@@ -88,6 +90,7 @@ fun PlayerScreenRoot(
         )
     else
         TextScreen(
+            modifier = modifier,
             text = state.value.chapterText,
             showText = true,
             onTextSwitcherClicked = {
@@ -100,6 +103,7 @@ fun PlayerScreenRoot(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
+    modifier: Modifier,
     bookCoverId: Int,
     currentPosition: String,
     sliderValue: Float,
@@ -119,10 +123,10 @@ fun PlayerScreen(
     onSliderValueChanged: (Float) -> Unit,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.size(12.dp))
@@ -275,12 +279,13 @@ fun PlayerScreen(
 
 @Composable
 fun TextScreen(
+    modifier: Modifier,
     text: String,
     showText: Boolean,
     onTextSwitcherClicked: (Boolean) -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background),
     ) {
@@ -318,6 +323,7 @@ fun getRawResourceUri(context: Context, resourceId: Int): Uri {
 private fun PlayerScreenPreview() {
     HeadbookTheme {
         PlayerScreen(
+            modifier = Modifier,
             bookCoverId = R.drawable.book_cover,
             currentPosition = "1:10",
             sliderValue = 0f,
@@ -360,6 +366,7 @@ private fun PlayerScreenPreview() {
 private fun TextScreenPreview() {
     HeadbookTheme {
         TextScreen(
+            modifier = Modifier,
             text = mockedText,
             showText = true,
             onTextSwitcherClicked = {}
