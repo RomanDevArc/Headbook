@@ -1,4 +1,4 @@
-package com.headbook.core.presentation
+package com.headbook.player.presentation
 
 
 

@@ -6,57 +6,53 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import com.headbook.R
-import com.headbook.player.presentation.components.AudioPlayerState
+import com.headbook.player.domain.PlayerRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
-class PlayerViewModel(application: Application) : AndroidViewModel(application) {
+
+class PlayerViewModel(application: Application, playerRepository: PlayerRepository) :
+    AndroidViewModel(application) {
 
     private val exoPlayer: ExoPlayer = ExoPlayer.Builder(application).build()
+    private val playSpeedValuesList = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f)
+    private var currentSpeedIndex = 2
+    private var currentAudioIndex = 0
+    private lateinit var audioUriList: List<Uri>
+    private lateinit var chapterTextList: List<String>
     private val _playerState = MutableStateFlow(AudioPlayerState())
     val playerState = _playerState.asStateFlow()
 
-    val audioUriList = listOf(
-        getRawResourceUri(application, R.raw.chapter_1),
-        getRawResourceUri(application, R.raw.chapter_2),
-        getRawResourceUri(application, R.raw.chapter_3),
-        getRawResourceUri(application, R.raw.chapter_4),
-    )
-
-    val playSpeedValuesList = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f)
-    var currentSpeedIndex = 2
-    var currentAudioIndex = 0
-
-    val textList = listOf(
-        "Chapter 1 \n $mockedText",
-        "Chapter 2 \n $mockedText",
-        "Chapter 3 \n $mockedText",
-        "Chapter 4 \n $mockedText"
-    )
-
-
     init {
-        updatePlayerTrack(audioUriList[currentAudioIndex])
-        observePlayerState()
+        viewModelScope.launch {
+            try {
+                audioUriList = async { playerRepository.getAudioChaptersUri() }.await()
+                chapterTextList = async { playerRepository.getTextOfChapters() }.await()
+                updatePlayerTrack(audioUriList[currentAudioIndex])
+                observePlayerState()
+            } catch (e: Exception) {
+                yield()
+                e.printStackTrace()
+            }
+        }
     }
 
 
-    private fun observePlayerState() {
-        viewModelScope.launch {
-            while (true) {
-                _playerState.value = _playerState.value.copy(
-                    isPlaying = exoPlayer.isPlaying,
-                    duration = exoPlayer.duration.coerceAtLeast(0L),
-                    currentPosition = exoPlayer.currentPosition,
-                    currentAudioNumber = currentAudioIndex + 1,
-                    audioCount = audioUriList.size,
-                    speed = playSpeedValuesList[currentSpeedIndex],
-                    chapterText = textList[currentAudioIndex]
-                )
-                kotlinx.coroutines.delay(500) // Update every 500ms
-            }
+    private suspend fun observePlayerState() {
+        while (true) {
+            _playerState.value = _playerState.value.copy(
+                isPlaying = exoPlayer.isPlaying,
+                duration = exoPlayer.duration.coerceAtLeast(0L),
+                currentPosition = exoPlayer.currentPosition,
+                currentAudioNumber = currentAudioIndex + 1,
+                audioCount = audioUriList.size,
+                speed = playSpeedValuesList[currentSpeedIndex],
+                chapterText = chapterTextList[currentAudioIndex]
+            )
+            kotlinx.coroutines.delay(100)
         }
     }
 

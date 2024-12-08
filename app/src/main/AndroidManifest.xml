@@ -18,6 +18,10 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/Theme.Headbook">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package com.headbook.player.presentation.components
+package com.headbook.player.presentation
 
 
 data class AudioPlayerState(
@@ -9,7 +9,9 @@ data class AudioPlayerState(
     val audioCount: Int = 0,
     val speed: Float = 1.0f,
     val showText: Boolean = false,
-    val sliderValue: Float = currentPosition/duration.toFloat(),
     val chapterText: String = "",
-)
+) {
+    val sliderValue: Float
+        get() = if (duration > 0) (currentPosition.toFloat() / duration) else 0f
+}
 
